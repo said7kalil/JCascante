@@ -7,12 +7,21 @@ module.exports = {
   ],
   theme: {
     extend: {
-      borderRadius: {
-        lg: 'var(--radius)',
-        md: 'calc(var(--radius) - 2px)',
-        sm: 'calc(var(--radius) - 4px)'
+      fontFamily: {
+        heading: ["'Cormorant Garamond'", "serif"],
+        body: ["'Outfit'", "sans-serif"],
       },
       colors: {
+        brand: {
+          bg: '#F4F3EF',
+          ink: '#1C1917',
+          crimson: '#832232',
+          crimsonDark: '#5f1824',
+          sage: '#586A6A',
+          stone: '#E8E6DF',
+          muted: '#5C5955',
+          border: '#DCD9D0',
+        },
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',
         card: {
@@ -46,31 +55,10 @@ module.exports = {
         border: 'hsl(var(--border))',
         input: 'hsl(var(--input))',
         ring: 'hsl(var(--ring))',
-        chart: {
-          '1': 'hsl(var(--chart-1))',
-          '2': 'hsl(var(--chart-2))',
-          '3': 'hsl(var(--chart-3))',
-          '4': 'hsl(var(--chart-4))',
-          '5': 'hsl(var(--chart-5))'
-        }
       },
       keyframes: {
-        'accordion-down': {
-          from: {
-            height: '0'
-          },
-          to: {
-            height: 'var(--radix-accordion-content-height)'
-          }
-        },
-        'accordion-up': {
-          from: {
-            height: 'var(--radix-accordion-content-height)'
-          },
-          to: {
-            height: '0'
-          }
-        }
+        'accordion-down': { from: { height: '0' }, to: { height: 'var(--radix-accordion-content-height)' } },
+        'accordion-up': { from: { height: 'var(--radix-accordion-content-height)' }, to: { height: '0' } }
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
