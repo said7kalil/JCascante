@@ -8,15 +8,18 @@ import uuid
 import logging
 import bcrypt
 import jwt
-import httpx
-import requests
+import html as html_lib
+import json
+import smtplib
+import asyncio
+from email.message import EmailMessage
 from datetime import datetime, timezone, timedelta
 from typing import List, Optional
 
 from fastapi import FastAPI, APIRouter, HTTPException, Depends, UploadFile, File, Form, Header, Query, Request
 from fastapi.responses import Response
 from starlette.middleware.cors import CORSMiddleware
-from motor.motor_asyncio import AsyncIOMotorClient
+from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorGridFSBucket
 from pydantic import BaseModel, EmailStr
 
 # ---------------- Config ----------------
@@ -28,15 +31,17 @@ JWT_SECRET = os.environ["JWT_SECRET"]
 JWT_ALGORITHM = "HS256"
 TOKEN_DAYS = 7
 
-EMAIL_BASE_URL = "https://integrations.emergentagent.com"
-EMAIL_KEY = os.environ["EMERGENT_EMAIL_KEY"]
-EMAIL_FROM_NAME = os.environ["EMAIL_FROM_NAME"]
-CONTACT_RECIPIENT_EMAIL = os.environ["CONTACT_RECIPIENT_EMAIL"]
+# Email (SMTP, e.g. a mailbox created in the Banahosting cPanel)
+EMAIL_FROM_NAME = os.environ.get("EMAIL_FROM_NAME", "Dr. Julio Cascante")
+CONTACT_RECIPIENT_EMAIL = os.environ.get("CONTACT_RECIPIENT_EMAIL", "")
+SMTP_HOST = os.environ.get("SMTP_HOST", "")
+SMTP_PORT = int(os.environ.get("SMTP_PORT", "465"))
+SMTP_USER = os.environ.get("SMTP_USER", "")
+SMTP_PASSWORD = os.environ.get("SMTP_PASSWORD", "")
 
-STORAGE_BASE = (os.environ.get("INTEGRATION_PROXY_URL") or "").strip() or "https://integrations.emergentagent.com"
-STORAGE_URL = STORAGE_BASE.rstrip("/") + "/objstore/api/v1/storage"
-EMERGENT_KEY = os.environ.get("EMERGENT_LLM_KEY")
 APP_NAME = "jccardio"
+MAX_UPLOAD_MB = int(os.environ.get("MAX_UPLOAD_MB", "25"))
+ALLOW_REGISTRATION = os.environ.get("ALLOW_REGISTRATION", "false").lower() == "true"
 
 app = FastAPI()
 api_router = APIRouter(prefix="/api")
@@ -44,39 +49,22 @@ api_router = APIRouter(prefix="/api")
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# ---------------- Storage ----------------
-storage_key = None
+# ---------------- Storage (MongoDB GridFS, private) ----------------
+fs_bucket = AsyncIOMotorGridFSBucket(db, bucket_name="uploads")
 
-def init_storage(force: bool = False):
-    global storage_key
-    if storage_key and not force:
-        return storage_key
-    resp = requests.post(f"{STORAGE_URL}/init", json={"emergent_key": EMERGENT_KEY}, timeout=30)
-    resp.raise_for_status()
-    storage_key = resp.json()["storage_key"]
-    return storage_key
+async def put_object(path: str, data: bytes, content_type: str) -> dict:
+    await fs_bucket.upload_from_stream(path, data, metadata={"content_type": content_type})
+    return {"path": path, "size": len(data)}
 
-def put_object(path: str, data: bytes, content_type: str) -> dict:
-    key = init_storage()
-    resp = requests.put(f"{STORAGE_URL}/objects/{path}",
-                        headers={"X-Storage-Key": key, "Content-Type": content_type},
-                        data=data, timeout=120)
-    if resp.status_code == 404:
-        key = init_storage(force=True)
-        resp = requests.put(f"{STORAGE_URL}/objects/{path}",
-                            headers={"X-Storage-Key": key, "Content-Type": content_type},
-                            data=data, timeout=120)
-    resp.raise_for_status()
-    return resp.json()
-
-def get_object(path: str):
-    key = init_storage()
-    resp = requests.get(f"{STORAGE_URL}/objects/{path}", headers={"X-Storage-Key": key}, timeout=60)
-    if resp.status_code == 404:
-        key = init_storage(force=True)
-        resp = requests.get(f"{STORAGE_URL}/objects/{path}", headers={"X-Storage-Key": key}, timeout=60)
-    resp.raise_for_status()
-    return resp.content, resp.headers.get("Content-Type", "application/octet-stream")
+async def get_object(path: str):
+    cursor = fs_bucket.find({"filename": path}).sort("uploadDate", -1).limit(1)
+    docs = await cursor.to_list(1)
+    if not docs:
+        raise HTTPException(status_code=404, detail="Archivo no encontrado")
+    stream = await fs_bucket.open_download_stream(docs[0]["_id"])
+    data = await stream.read()
+    ct = (docs[0].get("metadata") or {}).get("content_type", "application/octet-stream")
+    return data, ct
 
 # ---------------- Auth helpers ----------------
 def hash_password(password: str) -> str:
@@ -148,6 +136,8 @@ class ContactIn(BaseModel):
 # ---------------- Auth routes ----------------
 @api_router.post("/auth/register")
 async def register(body: RegisterIn):
+    if not ALLOW_REGISTRATION:
+        raise HTTPException(status_code=403, detail="Registro deshabilitado")
     uname = body.username.strip().lower()
     if await db.users.find_one({"username": uname}):
         raise HTTPException(status_code=400, detail="El usuario ya existe")
@@ -238,8 +228,10 @@ async def _store_file(upload: UploadFile, user_id: str) -> dict:
     ext = upload.filename.split(".")[-1].lower() if "." in upload.filename else "bin"
     path = f"{APP_NAME}/uploads/{user_id}/{uuid.uuid4()}.{ext}"
     data = await upload.read()
+    if len(data) > MAX_UPLOAD_MB * 1024 * 1024:
+        raise HTTPException(status_code=413, detail=f"El archivo supera {MAX_UPLOAD_MB} MB")
     ct = upload.content_type or "application/octet-stream"
-    result = put_object(path, data, ct)
+    result = await put_object(path, data, ct)
     ref = {"file_id": str(uuid.uuid4()), "storage_path": result["path"],
            "original_filename": upload.filename, "content_type": ct,
            "size": result.get("size", len(data)),
@@ -322,30 +314,43 @@ async def serve_file(path: str, authorization: str = Header(None), auth: str = Q
     record = await db.files.find_one({"storage_path": path, "is_deleted": False})
     if not record:
         raise HTTPException(status_code=404, detail="Archivo no encontrado")
-    data, content_type = get_object(path)
+    data, content_type = await get_object(path)
     return Response(content=data, media_type=record.get("content_type", content_type),
                     headers={"Cache-Control": "private, max-age=3600"})
 
 # ---------------- Contact (landing form -> email) ----------------
+def send_email(subject: str, body_html: str, reply_to: str):
+    if not (SMTP_HOST and SMTP_USER and SMTP_PASSWORD and CONTACT_RECIPIENT_EMAIL):
+        raise RuntimeError("SMTP no configurado")
+    msg = EmailMessage()
+    msg["Subject"] = subject.replace("\n", " ").replace("\r", " ")
+    msg["From"] = f"{EMAIL_FROM_NAME} <{SMTP_USER}>"
+    msg["To"] = CONTACT_RECIPIENT_EMAIL
+    msg["Reply-To"] = reply_to
+    msg.set_content("Nueva solicitud de cita (ver versión HTML).")
+    msg.add_alternative(body_html, subtype="html")
+    if SMTP_PORT == 465:
+        with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=30) as s:
+            s.login(SMTP_USER, SMTP_PASSWORD); s.send_message(msg)
+    else:
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=30) as s:
+            s.starttls(); s.login(SMTP_USER, SMTP_PASSWORD); s.send_message(msg)
+
 @api_router.post("/contact")
 async def create_contact(body: ContactIn):
     sub = {"id": str(uuid.uuid4()), **body.model_dump(),
            "created_at": datetime.now(timezone.utc).isoformat()}
     await db.contact_submissions.insert_one(dict(sub))
-    html = f"""<div style="font-family:Arial;padding:24px;background:#0F1A35;color:#fff;border-radius:12px;max-width:560px">
+    e = {k: html_lib.escape(str(v or "-")) for k, v in sub.items()}
+    body_html = f"""<div style="font-family:Arial;padding:24px;background:#0F1A35;color:#fff;border-radius:12px;max-width:560px">
     <h2 style="color:#E23B2E;margin:0 0 12px">Nueva solicitud de cita</h2>
-    <p><b>Nombre:</b> {sub['name']}</p><p><b>Correo:</b> {sub['email']}</p>
-    <p><b>Teléfono:</b> {sub.get('phone') or '-'}</p><p><b>Servicio:</b> {sub.get('service') or '-'}</p>
-    <p><b>Mensaje:</b><br>{sub['message']}</p></div>"""
+    <p><b>Nombre:</b> {e['name']}</p><p><b>Correo:</b> {e['email']}</p>
+    <p><b>Teléfono:</b> {e['phone']}</p><p><b>Servicio:</b> {e['service']}</p>
+    <p><b>Mensaje:</b><br>{e['message']}</p></div>"""
     try:
-        async with httpx.AsyncClient(timeout=30) as hc:
-            r = await hc.post(f"{EMAIL_BASE_URL}/api/v1/email/send",
-                              headers={"X-Email-Key": EMAIL_KEY},
-                              json={"to": [CONTACT_RECIPIENT_EMAIL], "subject": f"Nueva cita: {sub['name']}",
-                                    "html": html, "from_name": EMAIL_FROM_NAME, "contact_email": sub["email"]})
-        r.raise_for_status()
-    except Exception as e:
-        logger.error(f"Contact email failed: {e}")
+        await asyncio.to_thread(send_email, f"Nueva cita: {sub['name']}", body_html, sub["email"])
+    except Exception as ex:
+        logger.error(f"Contact email failed: {ex}")
         return {"status": "stored", "message": "Solicitud guardada. No se pudo enviar el correo."}
     return {"status": "success", "message": "¡Gracias! Tu solicitud fue enviada correctamente."}
 
@@ -356,32 +361,33 @@ async def root():
 # ---------------- App wiring ----------------
 app.include_router(api_router)
 app.add_middleware(CORSMiddleware, allow_credentials=True,
-                   allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+                   allow_origins=[o.strip() for o in os.environ.get('CORS_ORIGINS', '*').split(',')],
                    allow_methods=["*"], allow_headers=["*"])
 
-SEED_USERS = [
-    {"username": "jcascante", "name": "Dr. Julio Cascante", "password": "Cardio2026"},
-    {"username": "skalil", "name": "Dr. Said Kalil", "password": "Skalil87"},
-]
+# Initial accounts come from the SEED_USERS env var (JSON list of
+# {"username","name","password"}). They are only created if missing;
+# existing passwords are never overwritten.
+try:
+    SEED_USERS = json.loads(os.environ.get("SEED_USERS", "[]"))
+except json.JSONDecodeError:
+    SEED_USERS = []
+    logger.error("SEED_USERS no es JSON válido")
 
 @app.on_event("startup")
 async def startup():
     await db.users.create_index("username", unique=True)
     for s in SEED_USERS:
-        existing = await db.users.find_one({"username": s["username"]})
-        if not existing:
-            await db.users.insert_one({"id": str(uuid.uuid4()), "username": s["username"],
-                                       "name": s["name"], "email": "",
+        uname = s["username"].strip().lower()
+        if not await db.users.find_one({"username": uname}):
+            await db.users.insert_one({"id": str(uuid.uuid4()), "username": uname,
+                                       "name": s.get("name", uname), "email": "",
                                        "password_hash": hash_password(s["password"]),
                                        "role": "doctor", "created_at": datetime.now(timezone.utc).isoformat()})
-        elif not verify_password(s["password"], existing["password_hash"]):
-            await db.users.update_one({"username": s["username"]},
-                                      {"$set": {"password_hash": hash_password(s["password"])}})
-    try:
-        init_storage()
-        logger.info("Storage initialized")
-    except Exception as e:
-        logger.error(f"Storage init failed: {e}")
+            logger.info(f"Usuario inicial creado: {uname}")
+
+@app.get("/health")
+async def health():
+    return {"ok": True}
 
 @app.on_event("shutdown")
 async def shutdown():
