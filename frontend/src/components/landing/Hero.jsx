@@ -1,16 +1,8 @@
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
-import { Activity, HeartPulse, Gauge, Waves, Stethoscope, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { LineReveal } from "@/components/landing/Reveal";
 import { IMAGES, WHATSAPP_URL } from "@/data/site";
-
-const FLOAT = [
-  { Icon: HeartPulse, x: "6%", y: "14%", d: 0 },
-  { Icon: Activity, x: "82%", y: "10%", d: 0.6 },
-  { Icon: Gauge, x: "88%", y: "54%", d: 1.1 },
-  { Icon: Waves, x: "2%", y: "58%", d: 0.9 },
-  { Icon: Stethoscope, x: "78%", y: "82%", d: 1.4 },
-];
 
 export const Hero = () => {
   const ref = useRef(null);
@@ -65,27 +57,14 @@ export const Hero = () => {
           </motion.div>
         </div>
 
-        {/* Portrait + rings */}
-        <motion.div style={{ y }} className="relative flex justify-center items-end min-h-[420px] lg:min-h-[560px]">
-          <div className="absolute inset-0 flex items-center justify-center">
-            {[0,1,2].map((i) => (
-              <span key={i} className="absolute rounded-full border border-cyan/25 animate-pulsering"
-                    style={{ width: 360, height: 360, animationDelay: `${i}s` }} />
-            ))}
-            <span className="absolute rounded-full border border-white/10" style={{ width: 460, height: 460 }} />
-          </div>
-          {FLOAT.map(({ Icon, x, y, d }, i) => (
-            <div key={i} className="absolute animate-floaty" style={{ left: x, top: y, animationDelay: `${d}s` }}>
-              <div className="w-11 h-11 rounded-xl bg-navy-800/80 border border-white/10 backdrop-blur flex items-center justify-center text-cyan shadow-lg">
-                <Icon size={20} />
-              </div>
-            </div>
-          ))}
+        {/* Portrait (image already includes rings + icons) */}
+        <motion.div style={{ y }} className="relative flex justify-center items-center min-h-[420px] lg:min-h-[600px]">
+          <div className="absolute w-[78%] h-[78%] rounded-full bg-cyan/10 blur-[120px]" />
           <motion.img src={IMAGES.portrait} alt="Dr. Julio Cascante"
                       data-testid="hero-portrait"
-                      initial={{ opacity: 0, scale: 1.05 }} animate={{ opacity: 1, scale: 1 }}
+                      initial={{ opacity: 0, scale: 1.04 }} animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 1.1, delay: 0.3, ease: [0.22,1,0.36,1] }}
-                      className="relative z-10 w-[80%] max-w-[440px] object-contain drop-shadow-2xl" />
+                      className="relative z-10 w-full max-w-[560px] object-contain drop-shadow-2xl animate-floaty" />
         </motion.div>
       </div>
     </section>
