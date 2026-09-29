@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Plus, FileText, Video, CheckCircle2, Upload, X, Loader2, Eye, Trash2 } from "lucide-react";
@@ -80,6 +80,12 @@ const CaseModal = ({ patients, initial, onClose, onSaved }) => {
   });
   const [saving, setSaving] = useState(false);
   const up = (k) => (e) => setForm({ ...form, [k]: e.target.value });
+
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
 
   const save = async () => {
     if (!form.patient_id) { toast.error("Selecciona un paciente"); return; }

@@ -75,6 +75,12 @@ const SlideViewer = ({ items, idx, setIdx, onClose }) => {
   const it = items[idx];
   const src = fileUrl(it.file.url);
 
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === "Escape") onClose(); };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+
   const fullscreen = () => {
     const el = containerRef.current;
     if (el?.requestFullscreen) el.requestFullscreen();

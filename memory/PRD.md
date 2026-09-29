@@ -1,37 +1,27 @@
-# PRD — Dr. Julio Cascante · Cardiología Preventiva (Landing Page)
+# PRD — JC · Dr. Julio Cascante · Cardiólogo (v2: landing + portal clínico)
 
-## Original Problem Statement
-Medical landing page for cardiologist Dr. Julio Cascante (domain www.drjuliocascante.com). Focus on heart-care prevention, highlight services: Electrocardiograma, Ecocardiograma, Consulta prequirúrgica, Ergometría, Holter, MAPA (BPMA blood pressure monitoring). A cool contact form at the bottom + a floating WhatsApp button.
+## Original Problem Statement (v2)
+Rebuild: animated Spanish landing (fireguard.org style) + LOGIN button opening a private multi-user clinical dashboard to manage patients, upload labs (JPG/PDF), EKG (images), echocardiogram (video), write diagnosis; auto-generated dark case presentation; dashboard tabs Gestionar Casos / Pacientes / Diapositivas; slideshow viewer (upload PDF/PPTX; PDF viewable, PPTX downloadable) with Atrás/Fullscreen/Compartir/Descargar/Siguiente. Brand JC · Julio Cascante Cardiólogo, navy+red.
 
 ## User Choices
-- Language: Spanish
-- WhatsApp: +593985107013
-- Contact form: sends email notifications (Emergent-managed Resend)
-- Contact details: placeholders (user skipped)
-- Visual style: agent-decided → "Humanistic Medical" (alabaster bg + deep crimson, Cormorant Garamond + Outfit)
+- Spanish. Brand JC kept. Navy+red palette. Fireguard-style cinematic animations (Lenis + framer-motion).
+- Multi-user JWT auth. Two seeded accounts: jcascante/Cardio2026, skalil/Skalil87 (login by username).
+- Echocardiogram = video. Slideshow: PDF viewable + PPTX downloadable. Case presentation auto-generated, NO public share link.
 
 ## Architecture
-- Frontend: React 19 + Tailwind + framer-motion + Lenis (smooth scroll) + react-fast-marquee. Single page (`src/pages/Landing.jsx`) composed of section components in `src/components/site/`.
-- Backend: FastAPI + MongoDB. `POST /api/contact` stores submission in `contact_submissions` and sends notification email via Emergent Resend proxy. `GET /api/contact` lists.
-- Data/config: `src/data/site.js` (WhatsApp URL, image assets, services, nav, contact info).
+- Frontend React 19 + Tailwind + framer-motion + Lenis. Routes: `/` (landing), `/login`, `/dashboard` (protected), `/caso/:id` (protected). AuthContext with Bearer JWT in localStorage (`jc_token`).
+- Backend FastAPI + MongoDB. JWT auth (bcrypt), users seeded idempotently on startup. Emergent Object Storage (EMERGENT_LLM_KEY) for file uploads; files served via `/api/files/{path}?auth=<token>`. Emergent Resend for the public contact form.
+- Collections: users, patients, cases (lab_files/ekg_files/eco_file + text fields + diagnostico), presentations, files, contact_submissions.
 
-## Personas
-- Prospective patient seeking preventive cardiac care / diagnostics.
-- Patient needing pre-surgery cardiac clearance.
-
-## Implemented (2026-07-21)
-- Kinetic hero with line-by-line masked reveal + parallax portrait (doctor's real photo).
-- Editorial marquee, prevention manifesto (numbered chapters), 6-service bento grid, About, in-consult gallery (real clinic photos).
-- Dark contact section with email-sending form (name/email/phone/service/message) + validation + Spanish toasts.
-- Floating animated WhatsApp FAB.
-- Spanish SEO meta/title, `lang=es`.
-- Tested: backend 6/6, frontend 22/22 (all pass).
+## Implemented (2026-09-29)
+- Animated landing: navy hero with pulse rings + floating icons + line-by-line headline, services, about, testimonials, dark contact form (emails), WhatsApp FAB.
+- Login page (glass card matching mockup). Multi-user JWT.
+- Dashboard: tabs Gestionar Casos (table + Nuevo Caso modal with file upload panels), Pacientes (add/list/delete), Diapositivas (upload PDF/PPTX + slideshow viewer with toolbar).
+- Case presentation dark card (Cuadro clínico, EKG gallery, Laboratorios, Ecocardiograma video, Diagnóstico).
+- Tested: backend 20/20, frontend 100% of flows. Escape closes modals.
 
 ## Backlog
-- P1: Real clinic contact details (address/phone/email/hours) — currently placeholders in `src/data/site.js` and `backend/.env` CONTACT_RECIPIENT_EMAIL.
-- P2: Testimonials section, FAQ accordion, appointment date/time picker.
-- P2: Custom favicon / logo, Open Graph share image.
-
-## Next Tasks
-- Replace placeholder contact info & recipient email with the doctor's real data.
-- Optional: add testimonials + FAQ.
+- P1: Real clinic contact info + recipient email (placeholders in data/site.js & backend .env).
+- P2: Case presentation Fullscreen/Descargar (print) actions; PPTX→image auto-conversion for in-viewer preview.
+- P2: Password reset / self-registration UI; per-doctor profile slide (credentials, flags) as in mockup 07.
+- P2: Favicon/OG image, brand logo asset.
