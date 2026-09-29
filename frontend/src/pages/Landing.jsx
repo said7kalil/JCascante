@@ -1,27 +1,25 @@
-import { Toaster } from "sonner";
-import { Header } from "@/components/site/Header";
-import { Hero } from "@/components/site/Hero";
-import { MarqueeStrip } from "@/components/site/MarqueeStrip";
-import { Manifesto } from "@/components/site/Manifesto";
-import { Services } from "@/components/site/Services";
-import { About } from "@/components/site/About";
-import { Gallery } from "@/components/site/Gallery";
-import { Contact } from "@/components/site/Contact";
-import { WhatsAppFab } from "@/components/site/WhatsAppFab";
+import { ReactLenis } from "lenis/react";
+import { LandingHeader } from "@/components/landing/LandingHeader";
+import { Hero } from "@/components/landing/Hero";
+import { Services } from "@/components/landing/Services";
+import { About } from "@/components/landing/About";
+import { Testimonials } from "@/components/landing/Testimonials";
+import { ContactSection } from "@/components/landing/ContactSection";
+import { Footer, WhatsAppFab } from "@/components/landing/Footer";
 
 export default function Landing() {
   return (
-    <main className="relative bg-brand-bg">
-      <Header />
-      <Hero />
-      <MarqueeStrip />
-      <Manifesto />
-      <Services />
-      <About />
-      <Gallery />
-      <Contact />
-      <WhatsAppFab />
-      <Toaster position="top-center" richColors />
-    </main>
+    <ReactLenis root options={{ lerp: 0.09, duration: 1.2, smoothWheel: true, anchors: true }}>
+      <main className="relative bg-white overflow-x-hidden">
+        <LandingHeader />
+        <Hero />
+        <Services />
+        <About />
+        <Testimonials />
+        <ContactSection />
+        <Footer />
+        <WhatsAppFab />
+      </main>
+    </ReactLenis>
   );
 }

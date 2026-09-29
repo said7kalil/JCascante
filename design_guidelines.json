@@ -1,157 +1,80 @@
 {
-  "theme_and_context": {
-    "project_name": "Dr. Julio Cascante - Cardiology Landing Page",
-    "theme": "The Humanistic Medical (Organic & Earthy meets High-Contrast Swiss)",
-    "primary_emotion": "Trust, Authority, Empathy, Precision",
-    "target_audience": "Patients seeking premium cardiac care, prevention, and pre-surgery clearance.",
-    "design_philosophy": "A sophisticated, anti-template approach to medical design. Replaces sterile blues and whites with warm alabaster, deep crimson, and editorial typography to evoke trust and high-end care."
+  "project_title": "JC · JULIO CASCANTE · CARDIÓLOGO",
+  "app_type": "hybrid_fullstack",
+  "design_philosophy": "Cinematic Awwwards-level medical website & private clinical portal. Inspired by fireguard.org (momentum smooth scrolling, line-by-line kinetic typography reveals, sticky pinned sections, deep high-contrast navy surfaces, bold pulse accents).",
+  "language": "Spanish",
+  "colors": {
+    "brand_navy_deep": "#070E20",
+    "brand_navy_card": "#0F1A35",
+    "brand_navy_surface": "#162447",
+    "brand_navy_light": "#1F3160",
+    "pulse_red": "#E23B2E",
+    "pulse_red_hover": "#C82D21",
+    "accent_cyan": "#38BDF8",
+    "accent_magenta": "#EC4899",
+    "accent_yellow": "#FACC15",
+    "accent_green_check": "#22C55E",
+    "text_primary_dark_bg": "#FFFFFF",
+    "text_secondary_dark_bg": "#94A3B8",
+    "text_muted_dark_bg": "#64748B",
+    "light_bg_section": "#F8FAFC",
+    "light_card_bg": "#FFFFFF",
+    "text_primary_light_bg": "#0F172A",
+    "text_secondary_light_bg": "#475569"
   },
   "typography": {
-    "font_families": {
-      "heading": "'Cormorant Garamond', serif",
-      "body": "'Outfit', sans-serif"
-    },
-    "hierarchy": {
-      "h1": "text-5xl sm:text-6xl md:text-7xl font-light tracking-tighter leading-none text-foreground",
-      "h2": "text-4xl sm:text-5xl font-normal tracking-tight leading-tight text-foreground",
-      "h3": "text-2xl sm:text-3xl font-medium tracking-tight text-foreground",
-      "body": "text-base md:text-lg font-light leading-relaxed text-stone-700",
-      "overline": "text-xs md:text-sm font-semibold uppercase tracking-[0.2em] text-primary"
-    },
-    "installation_instructions": "Import Google Fonts: 'Cormorant Garamond' (weights 300, 400, 500, 600) and 'Outfit' (weights 300, 400, 500)."
-  },
-  "colors": {
-    "palette": {
-      "background": "#F4F3EF",
-      "foreground": "#1C1917",
-      "primary": "#832232",
-      "primary-foreground": "#FFFFFF",
-      "secondary": "#E8E6DF",
-      "secondary-foreground": "#292524",
-      "accent": "#586A6A",
-      "accent-foreground": "#FFFFFF",
-      "muted": "#E0DDD5",
-      "muted-foreground": "#5C5955",
-      "border": "#DCD9D0"
-    },
-    "rules": {
-      "gradients": "Do not use generic gradients. Stick to solid colors. If depth is needed, use subtle noise textures or extremely soft radial glows (max 10% opacity).",
-      "contrast": "Text must pass WCAG AA against its background. The primary crimson (#832232) is dark enough for white text.",
-      "hover_states": "Hovering interactive elements should slightly darken the background or apply a subtle opacity shift (e.g., bg-primary/90)."
+    "font_files_note": "JS codebase (.js files)",
+    "headline_font": "Outfit / Plus Jakarta Sans (bold, kinetic, tracking-tight)",
+    "body_font": "DM Sans / Inter",
+    "mono_font": "JetBrains Mono (for medical stats, EKG telemetry, timestamps)",
+    "sizes": {
+      "hero_h1": "text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-none",
+      "section_h2": "text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight",
+      "card_h3": "text-xl sm:text-2xl font-semibold",
+      "body": "text-base sm:text-lg leading-relaxed",
+      "small_label": "text-xs uppercase tracking-[0.2em] font-semibold"
     }
   },
-  "visual_enhancers": {
-    "border_radius": {
-      "cards": "rounded-2xl",
-      "buttons": "rounded-full",
-      "images": "rounded-3xl"
-    },
-    "shadows": {
-      "ambient": "shadow-[0_8px_30px_rgb(0,0,0,0.04)]",
-      "direct": "shadow-[0_4px_12px_rgb(0,0,0,0.08)]",
-      "hover": "shadow-[0_12px_40px_rgb(131,34,50,0.12)]"
-    },
-    "textures": "Apply a very subtle SVG noise overlay across the main background to remove digital flatness (opacity 1-2%)."
+  "motion_and_animations": {
+    "smooth_scroll": "Lenis smooth scroll integration on public landing page for momentum feel",
+    "hero_animations": "Line-by-line animated text mask reveal for headline 'Tu corazón merece cuidado antes del síntoma'. Concentric pulse ring animation around Dr. Julio Cascante cutout photo.",
+    "scroll_reveals": "Framer motion scroll-triggered line reveals, staggered service card entries, sticky pinned sections during process walkthrough",
+    "micro_interactions": "Subtle scale up and glow on CTA buttons, hover state contrast lifts, spring animations on floating WhatsApp FAB button"
   },
-  "grids_and_layouts": {
-    "spacing_scale": "Use generous padding. Sections should have py-24 or py-32. Cards should have p-8 or p-10.",
-    "services_bento_grid": "Use a 3-column grid on desktop (grid-cols-1 md:grid-cols-2 lg:grid-cols-3). Gap: gap-6 or gap-8. Make the 'Consulta prequirúrgica' card span 2 columns if possible to create asymmetry, breaking the boring uniform grid.",
-    "alignment": "Left-align typography in most sections. Asymmetry is preferred. Use offset images (e.g., text in column 1, image shifted down in column 2)."
+  "layout_and_grid": {
+    "landing_hero": "Split flex/grid layout on dark navy background (#070E20) featuring high-resolution transparent Dr. Julio Cascante cutout, animated floating service badges, stat counters, and prominent 'Agendar Cita' WhatsApp CTA",
+    "services_grid": "3-column responsive bento or 6-card grid on light background with central treadmill/ergometry visual anchor",
+    "about_split": "Doctor portrait in suit + credentials checklist, medical trajectory stats (+15 años de experiencia, 6 estudios especializados, 100% enfoque preventivo)",
+    "testimonials": "3 dark or light elevated cards with patient stories, quote marks, and verified patient tags",
+    "contact": "Deep navy contact section with interactive appointment request form + direct phone/WhatsApp info",
+    "dashboard_layout": "Dark clinical interface with persistent header (JC brand logo, Doctor profile dropdown, Logout), main tab navigation (Gestionar Casos, Pacientes, Diapositivas), patient filter bar, and data table",
+    "case_presentation_card": "Dark near-black rounded card (#0A0F1D) with pink/magenta heading accents, cyan telemetry labels, 4-quadrant layout: Cuadro Clínico, EKG Image Gallery, Laboratorios list, Ecocardiogram video player with measurements text overlay",
+    "slideshow_viewer": "White slide presentation canvas contained inside dark navy container with yellow action toolbar: Atrás, Fullscreen, Compartir, Descargar, Siguiente, + Subir PPTX/PDF dropzone"
   },
-  "components": {
-    "navigation": {
-      "style": "Glassmorphism (backdrop-blur-xl bg-[#F4F3EF]/70) fixed at top, z-50.",
-      "layout": "Logo left (Cormorant Garamond, text-2xl), Links center, CTA right."
-    },
-    "buttons": {
-      "primary": "bg-primary text-primary-foreground rounded-full px-8 py-4 font-body font-medium transition-transform hover:scale-105 active:scale-95",
-      "outline": "border border-primary text-primary rounded-full px-8 py-4 font-body font-medium hover:bg-primary/5 transition-colors"
-    },
-    "cards": {
-      "style": "bg-white border border-border/50 rounded-2xl p-8 hover:-translate-y-1 transition-all duration-300 hover:shadow-hover"
-    },
-    "whatsapp_fab": {
-      "style": "fixed bottom-6 right-6 z-50 bg-[#25D366] text-white p-4 rounded-full shadow-lg hover:scale-110 transition-transform flex items-center justify-center",
-      "icon": "Use WhatsApp icon from lucide-react or react-icons."
-    },
-    "contact_form": {
-      "style": "bg-foreground text-[#F4F3EF] rounded-3xl p-10 lg:p-16",
-      "inputs": "bg-transparent border-b border-[#F4F3EF]/30 rounded-none px-0 py-3 focus-visible:ring-0 focus-visible:border-primary transition-colors text-[#F4F3EF]"
-    }
+  "media_and_assets": {
+    "doctor_cutout_transparent": "https://customer-assets-jai6qajn.emergentagent.net/job_15966aec-b689-4cce-b086-73bd494c937a/artifacts/ntnszniz_JULIO.png",
+    "doctor_suit_photo": "https://customer-assets-lqy194kg.emergentagent.net/job_prevention-first-2/artifacts/n80adj0d_JCascante-03.jpg",
+    "clinic_photo": "https://customer-assets-jai6qajn.emergentagent.net/job_15966aec-b689-4cce-b086-73bd494c937a/artifacts/cm8zkfip_IMG_4522.webp",
+    "mockup_landing_ref": "https://customer-assets-lqy194kg.emergentagent.net/job_prevention-first-2/artifacts/4u5g0hk1_JCascante-01.webp",
+    "mockup_case_ref": "https://customer-assets-lqy194kg.emergentagent.net/job_prevention-first-2/artifacts/ubs5z87x_JCascante-05.jpg",
+    "mockup_dashboard_ref": "https://customer-assets-lqy194kg.emergentagent.net/job_prevention-first-2/artifacts/dgbidls8_JCascante-06.webp",
+    "mockup_slideshow_ref": "https://customer-assets-lqy194kg.emergentagent.net/job_prevention-first-2/artifacts/xsqguv2w_JCascante-07.webp",
+    "echocardiogram_equipment": "https://images.unsplash.com/photo-1691935071222-c008a4ccc2ca?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NxA1MDZ8MHwxfHNlYXJjaHwzfHxlY2hvY2FyZGlvZ3JhbSUyMGhlYXJ0JTIwdWx0cmFzb3VuZHxlbnwwfHx8fDE3OTA2NDQ1NzJ8MA&ixlib=rb-4.1.0&q=85"
   },
-  "motion_and_interactions": {
-    "scroll": "MANDATORY: Implement smooth momentum scrolling using @studio-freight/react-lenis.",
-    "hero_reveal": "Use Framer Motion. The hero text must reveal line-by-line using a clipping mask (overflow-hidden on parent wrapper, y: '100%' to 0 on the text element).",
-    "section_entrances": "whileInView={ { opacity: 1, y: 0 } }, initial={ { opacity: 0, y: 40 } }, viewport={ { once: true, margin: '-100px' } }.",
-    "marquee": "Use react-fast-marquee. Very slow speed, font-heading, text-3xl or text-4xl, text-primary, separated by a mid-dot (·)."
-  },
-  "image_urls": {
-    "hero_portrait": {
-      "url": "https://images.pexels.com/photos/6762869/pexels-photo-6762869.jpeg",
-      "description": "Professional portrait of a male doctor with stethoscope. Use in Hero section.",
-      "treatment": "Clip/mask into an arched or pill-shaped container, or use high-end background removal. If kept as a rectangle, apply a soft shadow and rounded-3xl."
-    },
-    "consultation": {
-      "url": "https://images.unsplash.com/photo-1581056771107-24ca5f033842",
-      "description": "Doctor checking patient. Use in the Prevention Manifesto or About section.",
-      "treatment": "Desaturate slightly or apply a subtle warm sepia overlay to match the earthy theme."
-    },
-    "equipment": {
-      "url": "https://images.unsplash.com/photo-1513224502586-d1e602410265",
-      "description": "Electrocardiogram monitor. Use in the Services section (specifically for ECG or Holter).",
-      "treatment": "Use inside a Bento Grid card as a visual break."
-    }
-  },
-  "page_sections": [
-    {
-      "id": "header",
-      "content": "Logo (Dr. Julio Cascante), Nav links (Inicio, Prevención, Servicios, Sobre Mí), CTA (Agendar Cita)."
-    },
-    {
-      "id": "hero",
-      "layout": "2-column. Left: Overline ('CUIDADO CARDÍACO PREVENTIVO'), Huge H1 ('Tu corazón. / Tu vida. / Nuestra prioridad.'). Right: Hero Portrait.",
-      "features": "Line-by-line text reveal, parallax on scroll."
-    },
-    {
-      "id": "marquee",
-      "content": "PREVENCIÓN · DIAGNÓSTICO · TRATAMIENTO · CUIDADO CONTINUO"
-    },
-    {
-      "id": "prevention_manifesto",
-      "layout": "Editorial layout. Large numbers (01, 02). Text focusing on proactive heart care rather than reactive treatment.",
-      "features": "Generous negative space."
-    },
-    {
-      "id": "services",
-      "layout": "Bento Grid (3 columns). Highlight 6 services: Electrocardiograma, Ecocardiograma, Consulta prequirúrgica, Ergometría, Holter, MAPA.",
-      "features": "Include minimalist icons (Phosphor or Lucide) for each service. Hover effects on cards."
-    },
-    {
-      "id": "about",
-      "layout": "Split layout. Image (consultation) on left, Text (credentials, approach) on right.",
-      "content": "Focus on experience and empathetic patient care."
-    },
-    {
-      "id": "contact_footer",
-      "layout": "Dark background container. Left: Contact info, office hours, address. Right: Contact Form (Name, Email, Message, Submit).",
-      "features": "Form should visually integrate seamlessly (minimalist borders, large typography). Send email functionality."
-    }
+  "instructions_to_main_agent": [
+    "Ensure the header navigation is NEVER transparent when scrolled over content; use backdrop-blur glassmorphism (e.g., bg-[#070E20]/80 backdrop-blur-md) with border-b border-white/10.",
+    "All key interactive elements MUST include data-testid attributes (e.g. data-testid='login-button', data-testid='tab-gestionar-casos', data-testid='whatsapp-cta', data-testid='patient-selector').",
+    "The codebase uses React JS files (.js / .jsx), NOT TypeScript files (.tsx).",
+    "Implement Lenis or smooth scroll hooks alongside Framer Motion line-by-line reveals for fireguard.org style storytelling.",
+    "Dashboard must support switching between 'Gestionar Casos', 'Pacientes', and 'Diapositivas'.",
+    "Case presentation view must render dark card mockup style with cyan (#38BDF8) and magenta (#EC4899) section tags, video player for ecocardiograma, image modal/viewer for EKG, and labs status.",
+    "Slideshow viewer must display slide deck preview, allow PPTX/PDF upload, full screen mode, and download actions with yellow (#FACC15) interactive toolbar controls."
   ],
-  "universal_guidelines_for_main_agent": [
-    "You tend to converge toward generic, 'on distribution' outputs. Avoid this: make creative, distinctive frontends that surprise and delight.",
-    "Do NOT use Inter, Roboto, or standard sans-serifs for headings. Use the designated Serif font (Cormorant Garamond).",
-    "Never center-align large blocks of text. Left-alignment creates better editorial flow.",
-    "Use 2-3x more spacing than typical templates (py-24, p-8, etc).",
-    "Every interaction needs micro-animations (hover states, focus states).",
-    "All interactive elements MUST include a data-testid attribute.",
-    "DO NOT use a fully transparent header over content that scrolls beneath it. Use glassmorphism.",
-    "Include lucide-react or react-icons for high-quality minimal icons.",
-    "Implement the WhatsApp FAB strictly as floating and distinct.",
-    "Ensure 'Consulta prequirúrgica' and other long medical terms break nicely on mobile without overflowing."
-  ],
-  "accessibility": {
-    "contrast": "Ensure primary text meets WCAG AA (4.5:1) against backgrounds.",
-    "forms": "All inputs must have associated labels or clear aria-labels.",
-    "motion": "Respect prefers-reduced-motion CSS media queries for heavy animations."
-  }
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
+    "Avoid default Vercel or generic Bootstrap looks. Embrace bold kinetic typography and rich deep navy gradients.",
+    "Never use dark colors as standard flat gradients; use layered dark surfaces with crisp 1px borders (border-white/10).",
+    "Never center-align whole body sections. Use strong asymmetric layouts with clear optical hierarchy.",
+    "Ensure text contrast ratios meet WCAG AA standards in both dark hero/dashboard surfaces and light testimonial/services sections.",
+    "Add hover states explicitly specifying hover text color along with hover background color."
+  ]
 }
