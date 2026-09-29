@@ -5,7 +5,7 @@ import { WHATSAPP_URL } from "@/data/site";
 export const Footer = () => (
   <footer className="bg-navy-900 border-t border-white/10 py-10">
     <div className="max-w-[1360px] mx-auto px-5 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-5">
-      <Logo light />
+      <Logo invert />
       <p className="text-white/45 text-xs text-center">© {new Date().getFullYear()} Dr. Julio Cascante · Cardiología preventiva · www.drjuliocascante.com</p>
     </div>
   </footer>

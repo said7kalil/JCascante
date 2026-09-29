@@ -6,9 +6,12 @@ export const WHATSAPP_URL = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURICo
 const A1 = "https://customer-assets-jai6qajn.emergentagent.net/job_15966aec-b689-4cce-b086-73bd494c937a/artifacts";
 const A2 = "https://customer-assets-lqy194kg.emergentagent.net/job_prevention-first-2/artifacts";
 
+export const LOGO = "https://customer-assets-lqy194kg.emergentagent.net/job_prevention-first-2/artifacts/mycxlkk7_JC-Logo-02.webp";
+
 export const IMAGES = {
   portrait: `${A1}/ntnszniz_JULIO.png`,
-  suit: `${A2}/n80adj0d_JCascante-03.jpg`,
+  suit: `${A2}/y1gzzjge_Gemini_Generated_Image_i42r42i42r42i42r.jpeg`,
+  ergo: `${A2}/0mv13s9h_Ergo_2.png`,
   clinic: `${A1}/cm8zkfip_IMG_4522.webp`,
 };
 

@@ -72,7 +72,7 @@ export default function Login() {
         </motion.form>
       </div>
 
-      <div className="py-6 flex justify-center"><Logo light /></div>
+      <div className="py-6 flex justify-center"><Logo invert /></div>
     </div>
   );
 }
