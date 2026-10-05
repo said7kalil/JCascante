@@ -1,0 +1,5 @@
+node_modules/
+public/clips/
+public/audio/beat.wav
+out/*
+!out/viral-3familias.mp4
