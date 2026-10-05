@@ -61,7 +61,7 @@ const Cta: React.FC = () => {
   const pulse = 1 + Math.sin(f / 4) * 0.04;
   return (
     <div style={{position: 'absolute', top: 1500, left: 0, right: 0, textAlign: 'center', transform: `scale(${sc * pulse})`}}>
-      <div style={{display: 'inline-block', background: '#FFE600', color: '#000', fontFamily: 'Anton, "Noto Color Emoji"', fontSize: 84, padding: '18px 44px', borderRadius: 28, boxShadow: '0 10px 0 #000'}}>
+      <div style={{display: 'inline-block', background: '#FFE600', color: '#000', fontFamily: 'Anton, "Noto Color Emoji"', fontSize: 70, whiteSpace: 'nowrap', padding: '18px 36px', borderRadius: 28, boxShadow: '0 10px 0 #000'}}>
         SUSCRÍBETE PARA LA PARTE 2 👉
       </div>
       <div style={{marginTop: 26, fontFamily: 'Anton, "Noto Color Emoji"', fontSize: 64, color: '#fff', WebkitTextStroke: '8px #000', paintOrder: 'stroke fill'}}>
