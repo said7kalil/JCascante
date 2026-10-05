@@ -3,3 +3,4 @@ public/clips/
 public/audio/beat.wav
 out/*
 !out/viral-3familias.mp4
+!out/viral-3familias-ligero.mp4
