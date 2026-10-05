@@ -134,6 +134,16 @@ export default function FichaPaciente() {
                     className="mt-6 inline-flex items-center gap-2 rounded-full bg-pulse/10 text-pulse border border-pulse/30 px-5 py-2.5 font-semibold hover:bg-pulse/20 transition">
               <Activity size={17} /> Agregar actualización / seguimiento
             </button>
+            {(p?.followups || []).length > 0 && (
+              <div className="mt-5 space-y-2" data-testid="followup-list">
+                {p.followups.slice().reverse().map((f) => (
+                  <div key={f.id} className="ui-field rounded-xl px-4 py-3">
+                    <p className="text-xs ui-muted mb-1">{new Date(f.date).toLocaleString("es-EC")}</p>
+                    <p className="ui-ink text-sm whitespace-pre-line">{f.text}</p>
+                  </div>
+                ))}
+              </div>
+            )}
           </Section>
 
           <Section title="Examen físico y signos">

@@ -1,0 +1,33 @@
+{
+  "summary": "Iteration 5 verified the new 'Ficha del paciente' full-page UI, the LIGHT/DARK theme toggle on dashboard, and backend endpoints for extended fields, GET /patients/{id}, patient file uploads (ekg/eco), file delete, and followups. Backend pytest: 28/28 passed (12 new ficha tests + 16 regression). Frontend Playwright: default theme is LIGHT (ui-page bg rgb(238,241,248)), theme-toggle switches to DARK (bg rgb(7,14,32)), persists via localStorage jc_theme after reload. Pacientes → new-patient-btn navigates to /ficha/new. Save-empty shows 'El nombre es obligatorio'. Fully filled form (name, cedula, age, consulta_place, app, imc, diagnostico, laboratorios, eco_desc) saves and redirects to /ficha/{id}. EKG image upload shows thumbnail. add-followup via window.prompt adds entry; compare-modal lists it on timeline. next-appt-btn opens next-modal; email-channel submit creates appointment and shows success toast + closes modal. open-visor renders VisorModal containing diagnóstico/laboratorios/patient name. Dashboard tabs tab-casos/tab-citas/tab-diapositivas/tab-pacientes all render in both themes (dark bg confirmed uniformly). patient-row-0 click opens /ficha/{id} prefilled (name='TEST_UI_403933', dx='Cardiopatía hipertensiva', place='Quito'). Upload-before-save shows Spanish toast 'Guarda el paciente antes de subir archivos'. CRITICAL regression test: PUT /patients/{id} does NOT wipe ekg_files/eco_files/followups (confirmed via dedicated backend test).",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {"ui_bugs": [], "integration_issues": [], "design_issues": []},
+  "test_report_links": [
+    "/app/backend/tests/test_patients_ficha.py",
+    "/app/backend/tests/test_patients_expanded.py",
+    "/app/backend/tests/test_appointments.py",
+    "/app/test_reports/pytest/iteration5_ficha.xml",
+    "/app/test_reports/pytest/iteration5.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "PUT /patients/{id} uses body.model_dump() with $set — this works ONLY because ekg_files/eco_files/lab_files/followups are NOT part of PatientIn. Verified by test. Keep PatientIn free of file/followup fields to preserve this invariant. If someone adds them to PatientIn later, PUT will wipe uploads.",
+    "FichaPaciente.save() uses nav(`/ficha/${data.id}`, { replace: true }) on create; isNew becomes false only after URL changes — safe currently but the component relies on useParams to transition. OK.",
+    "VisorModal is hardcoded dark (bg-navy-950/95) which is the intended dark 'case card' per spec — not a theme bug.",
+    "NextModal 'Ambos' default channel + email-only path: toast text uses `data.email_sent || channel === 'whatsapp'` which may show 'Cita agendada' (not 'y recordatorio enviado') when email backend fails silently (email_sent=false). UX nit; email_sent is already surfaced.",
+    "FichaPaciente doesn't display existing followups inline on page — only via Compare modal. Minor UX: could show the last follow-up under the 'Agregar actualización' button.",
+    "Followup prompt uses window.prompt (blocks UI, not localized styling). Works but a modal would be more consistent with the rest of the design.",
+    "Dark-mode VisorModal is intentional; no readability issues observed across tabs in dark theme."
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_patients_ficha.py",
+    "/app/test_reports/iteration_5.json"
+  ],
+  "success_rate": {"backend": "100% (28/28)", "frontend": "100% of specified flows"},
+  "test_credentials": "jcascante / Cardio2026",
+  "seed_data_creation": "Test patient (TEST_UI_*) and its follow-up appointment were deleted (soft) after UI test completed. Backend pytest cleans its own TEST_ records.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Ficha routes: /ficha/new (create) and /ficha/{id} (edit). Theme is controlled by ThemeContext (localStorage key 'jc_theme', default 'light') and applied via [data-theme] attribute on wrapper div; CSS vars in index.css drive ui-page/ui-card/ui-field/ui-ink/ui-sub/ui-muted/ui-line classes. For prefill assertions after row click, wait ~2s for GET /patients/{id} to resolve before reading input values. For file upload tests use a tiny PNG buffer and target 'input[type=file]' inside [data-testid=up-ekg|up-eco]. VisorModal is intentionally dark regardless of theme. PUT /patients/{id} relies on PatientIn NOT including file/followup arrays — do not add them to the model or the preservation invariant breaks.",
+  "rca of the issue": "N/A — no bugs found."
+}
