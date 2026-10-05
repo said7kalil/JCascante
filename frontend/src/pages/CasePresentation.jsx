@@ -27,7 +27,7 @@ export default function CasePresentation() {
         <Logo />
         <div className="flex items-center gap-5 text-navy-900/80">
           <Link to="/dashboard" data-testid="back-dashboard" className="inline-flex items-center gap-1.5 font-semibold hover:text-pulse"><LayoutDashboard size={18} /> Ver Dashboard</Link>
-          <span className="font-semibold text-gold">{user?.name}</span>
+          <span className="font-semibold text-pulse">{user?.name}</span>
           <button onClick={() => { logout(); nav("/"); }} className="hover:text-pulse"><LogOut size={20} /></button>
         </div>
       </div>

@@ -5,7 +5,7 @@ import { api, apiErr } from "@/lib/api";
 import { SERVICES, WHATSAPP_NUMBER } from "@/data/site";
 
 const STATUS = {
-  pendiente: { label: "Pendiente", cls: "bg-gold/15 text-gold border-gold/30" },
+  pendiente: { label: "Pendiente", cls: "bg-cyan/15 text-cyan border-cyan/30" },
   confirmada: { label: "Confirmada", cls: "bg-greenok/15 text-greenok border-greenok/30" },
   cancelada: { label: "Cancelada", cls: "bg-pulse/15 text-pulse border-pulse/30" },
 };
@@ -44,7 +44,7 @@ export const AppointmentsTab = ({ patients }) => {
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <p className="ui-sub text-sm">{items.length} cita(s) agendada(s)</p>
         <button onClick={() => setEditing({ new: true })} data-testid="new-appt-btn"
-                className="inline-flex items-center gap-2 rounded-xl bg-pulse px-5 py-3 font-semibold ui-ink hover:bg-pulse-dark transition">
+                className="inline-flex items-center gap-2 rounded-xl bg-pulse px-5 py-3 font-semibold text-white hover:bg-pulse-dark transition">
           <CalendarPlus size={18} /> Nueva cita
         </button>
       </div>
@@ -141,7 +141,7 @@ const ApptModal = ({ initial, patients, taken, onClose, onSaved }) => {
       <div className="ui-card border ui-line rounded-2xl w-full max-w-4xl my-8 p-7" onClick={(e) => e.stopPropagation()} data-testid="appt-modal">
         <div className="flex items-center justify-between mb-6">
           <h3 className="font-display font-bold text-xl ui-ink">{initial?.id ? "Editar cita" : "Nueva cita"}</h3>
-          <button onClick={onClose} className="ui-muted hover:ui-ink"><X size={22} /></button>
+          <button onClick={onClose} className="ui-muted hover:text-pulse"><X size={22} /></button>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
@@ -179,9 +179,9 @@ const ApptModal = ({ initial, patients, taken, onClose, onSaved }) => {
             <label className="text-xs ui-muted uppercase tracking-wide">Fecha <span className="text-pulse">*</span></label>
             <div className="ui-field border ui-line rounded-xl p-4 mt-1">
               <div className="flex items-center justify-between mb-3">
-                <button onClick={() => setView((v) => { const m = v.m - 1; return m < 0 ? { y: v.y - 1, m: 11 } : { y: v.y, m }; })} className="ui-sub hover:ui-ink p-1"><ChevronLeft size={18} /></button>
+                <button onClick={() => setView((v) => { const m = v.m - 1; return m < 0 ? { y: v.y - 1, m: 11 } : { y: v.y, m }; })} className="ui-sub hover:text-pulse p-1"><ChevronLeft size={18} /></button>
                 <span className="font-display font-semibold ui-ink">{MONTHS[view.m]} {view.y}</span>
-                <button onClick={() => setView((v) => { const m = v.m + 1; return m > 11 ? { y: v.y + 1, m: 0 } : { y: v.y, m }; })} className="ui-sub hover:ui-ink p-1"><ChevronRight size={18} /></button>
+                <button onClick={() => setView((v) => { const m = v.m + 1; return m > 11 ? { y: v.y + 1, m: 0 } : { y: v.y, m }; })} className="ui-sub hover:text-pulse p-1"><ChevronRight size={18} /></button>
               </div>
               <div className="grid grid-cols-7 gap-1 text-center text-[11px] ui-muted mb-1">
                 {DOW.map((d) => <span key={d}>{d}</span>)}
@@ -197,7 +197,7 @@ const ApptModal = ({ initial, patients, taken, onClose, onSaved }) => {
                   return (
                     <button key={i} disabled={disabled} data-testid={`day-${iso}`}
                             onClick={() => setForm((f) => ({ ...f, date: iso, time: "" }))}
-                            className={`h-9 rounded-lg text-sm transition ${sel ? "bg-pulse ui-ink font-bold" : disabled ? "ui-muted cursor-not-allowed" : "ui-sub hover:bg-white/10"}`}>
+                            className={`h-9 rounded-lg text-sm transition ${sel ? "bg-pulse text-white font-bold" : disabled ? "ui-muted cursor-not-allowed" : "ui-sub hover:bg-white/10"}`}>
                       {d.getDate()}
                     </button>
                   );
@@ -229,7 +229,7 @@ const ApptModal = ({ initial, patients, taken, onClose, onSaved }) => {
         <div className="flex justify-end gap-3 mt-7">
           <button onClick={onClose} className="rounded-lg border border-white/15 px-5 py-2.5 font-semibold ui-sub hover:bg-white/5 transition">Cancelar</button>
           <button onClick={save} disabled={saving} data-testid="appt-save"
-                  className="rounded-lg bg-pulse px-6 py-2.5 font-semibold ui-ink hover:bg-pulse-dark transition inline-flex items-center gap-2">
+                  className="rounded-lg bg-pulse px-6 py-2.5 font-semibold text-white hover:bg-pulse-dark transition inline-flex items-center gap-2">
             {saving ? <Loader2 className="animate-spin" size={18} /> : (initial?.id ? "Guardar cambios" : "Agendar cita")}
           </button>
         </div>

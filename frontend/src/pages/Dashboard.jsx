@@ -48,7 +48,7 @@ export default function Dashboard() {
       <div className="max-w-[1360px] mx-auto px-5 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-6">
           <h1 className="font-display font-bold text-2xl ui-ink">Dashboard</h1>
-          <div className="flex items-center gap-3 text-gold">
+          <div className="flex items-center gap-3 text-pulse">
             <span className="font-semibold" data-testid="dash-username">{user?.name}</span>
             <button onClick={doLogout} data-testid="logout-btn" className="hover:text-pulse transition-colors" aria-label="Salir"><LogOut size={20} /></button>
           </div>
@@ -57,9 +57,9 @@ export default function Dashboard() {
         <div className="flex gap-6 sm:gap-8 border-b ui-line mb-8 overflow-x-auto">
           {TABS.map((t) => (
             <button key={t.id} onClick={() => setTab(t.id)} data-testid={`tab-${t.id}`}
-                    className={`relative pb-3 font-display font-semibold text-base sm:text-lg whitespace-nowrap transition-colors ${tab === t.id ? "text-gold" : "ui-sub hover:text-pulse"}`}>
+                    className={`relative pb-3 font-display font-semibold text-base sm:text-lg whitespace-nowrap transition-colors ${tab === t.id ? "text-pulse" : "ui-sub hover:text-pulse"}`}>
               {t.label}
-              {tab === t.id && <span className="absolute bottom-0 inset-x-0 h-0.5 bg-gold rounded-full" />}
+              {tab === t.id && <span className="absolute bottom-0 inset-x-0 h-0.5 bg-pulse rounded-full" />}
             </button>
           ))}
         </div>

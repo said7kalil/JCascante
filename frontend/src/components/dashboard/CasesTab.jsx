@@ -20,7 +20,7 @@ export const CasesTab = ({ patients, cases, reloadCases }) => {
           {patients.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
         <button onClick={() => setEditing({ new: true })} data-testid="new-case-btn"
-                className="inline-flex items-center gap-2 rounded-xl bg-navy-600 border border-white/15 px-5 py-3 font-semibold ui-ink hover:bg-navy-500 transition">
+                className="inline-flex items-center gap-2 rounded-xl bg-navy-600 border border-white/15 px-5 py-3 font-semibold text-white hover:bg-navy-500 transition">
           <Plus size={18} className="text-cyan" /> Nuevo Caso
         </button>
       </div>
@@ -41,7 +41,7 @@ export const CasesTab = ({ patients, cases, reloadCases }) => {
             <Cell onClick={() => setEditing(c)}>{c.eco_file ? <Video className="text-magenta" size={20} /> : <UploadTag />}</Cell>
             <Cell onClick={() => setEditing(c)}>{c.diagnostico ? <FileText className="ui-ink" size={20} /> : <span className="ui-muted text-sm">—</span>}</Cell>
             <button onClick={() => nav(`/caso/${c.id}`)} data-testid={`case-view-${i}`}
-                    className="inline-flex items-center gap-1.5 text-gold hover:ui-ink text-sm font-semibold justify-self-end">
+                    className="inline-flex items-center gap-1.5 text-pulse hover:opacity-70 text-sm font-semibold justify-self-end">
               <Eye size={16} /> Ver
             </button>
           </div>
@@ -60,7 +60,7 @@ const Cell = ({ children, onClick }) => (
   <button onClick={onClick} className="flex items-center">{children}</button>
 );
 const UploadTag = () => (
-  <span className="inline-flex items-center gap-1 text-gold text-sm font-semibold hover:underline"><Upload size={14} /> Upload</span>
+  <span className="inline-flex items-center gap-1 text-pulse text-sm font-semibold hover:underline"><Upload size={14} /> Upload</span>
 );
 
 // ---------------- Case Modal ----------------
@@ -123,7 +123,7 @@ const CaseModal = ({ patients, initial, onClose, onSaved }) => {
       <div className="ui-card border ui-line rounded-2xl w-full max-w-3xl my-8 p-7" onClick={(e) => e.stopPropagation()} data-testid="case-modal">
         <div className="flex items-center justify-between mb-6">
           <h3 className="font-display font-bold text-xl ui-ink">{c ? "Editar caso" : "Nuevo caso"}</h3>
-          <button onClick={onClose} className="ui-muted hover:ui-ink"><X size={22} /></button>
+          <button onClick={onClose} className="ui-muted hover:text-pulse"><X size={22} /></button>
         </div>
 
         <div className="space-y-4">
@@ -152,7 +152,7 @@ const CaseModal = ({ patients, initial, onClose, onSaved }) => {
             <textarea data-testid="case-diagnostico" className={`${inp} resize-none`} rows={2} value={form.diagnostico} onChange={up("diagnostico")} /></div>
 
           <button onClick={save} disabled={saving} data-testid="case-save"
-                  className="rounded-lg bg-pulse px-6 py-2.5 font-semibold ui-ink hover:bg-pulse-dark transition inline-flex items-center gap-2">
+                  className="rounded-lg bg-pulse px-6 py-2.5 font-semibold text-white hover:bg-pulse-dark transition inline-flex items-center gap-2">
             {saving ? <Loader2 className="animate-spin" size={18} /> : (c ? "Guardar cambios" : "Crear caso")}
           </button>
         </div>
