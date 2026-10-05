@@ -24,7 +24,7 @@ export const SHOTS: Shot[] = [
   {clip: 5, t: 0.8, dur: 3.2, fx: 520, fy: 330, z0: 1.3, z1: 1.55, caption: 'Y ENTONCES… SE ARMÓ *LA GRANDE* 🔥', flash: true},
   {clip: 5, t: 4.0, dur: 3.2, fx: 700, fy: 340, z0: 1.3, z1: 1.6, caption: 'NADIE SE *SOLTABA* 😂💥', shake: true},
   {clip: 5, t: 21.0, dur: 2.6, fx: 520, fy: 340, z0: 1.1, z1: 1.3, caption: '¿Y LA SEÑORA DEL *LEOPARDO*? 🐆'},
-  {clip: 5, t: 25.8, dur: 3.2, fx: 520, fy: 340, z0: 1.15, z1: 1.35, caption: 'LLEGÓ A VER EL *CHISME* ☕😂', cta: true},
+  {clip: 5, t: 24.8, dur: 4.2, fx: 520, fy: 340, z0: 1.15, z1: 1.35, caption: 'LLEGÓ A VER EL *CHISME* ☕😂', cta: true},
 ];
 export const starts = SHOTS.reduce<number[]>((a, s, i) => {
   a.push(i === 0 ? 0 : a[i - 1] + Math.round(SHOTS[i - 1].dur * FPS));

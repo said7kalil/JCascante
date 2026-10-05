@@ -58,14 +58,19 @@ const Cta: React.FC = () => {
   const f = useCurrentFrame();
   const {fps} = useVideoConfig();
   const sc = spring({frame: f, fps, config: {damping: 8}});
-  const pulse = 1 + Math.sin(f / 4) * 0.04;
+  const sc2 = spring({frame: f - 8, fps, config: {damping: 8}});
+  const pulse = 1 + Math.sin(f / 4) * 0.03;
+  const F = 'Anton, "Noto Color Emoji", sans-serif';
   return (
-    <div style={{position: 'absolute', top: 1500, left: 0, right: 0, textAlign: 'center', transform: `scale(${sc * pulse})`}}>
-      <div style={{display: 'inline-block', background: '#FFE600', color: '#000', fontFamily: 'Anton, "Noto Color Emoji"', fontSize: 70, whiteSpace: 'nowrap', padding: '18px 36px', borderRadius: 28, boxShadow: '0 10px 0 #000'}}>
-        SUSCRÍBETE PARA LA PARTE 2 👉
+    <div style={{position: 'absolute', top: 1485, left: 30, right: 30, textAlign: 'center', fontFamily: F}}>
+      <div style={{color: '#fff', fontSize: 62, WebkitTextStroke: '8px #000', paintOrder: 'stroke fill', transform: `scale(${sc})`}}>
+        TODOS LOS SÁBADOS Y DOMINGOS
       </div>
-      <div style={{marginTop: 26, fontFamily: 'Anton, "Noto Color Emoji"', fontSize: 64, color: '#fff', WebkitTextStroke: '8px #000', paintOrder: 'stroke fill'}}>
-        ¿CON QUIÉN TE QUEDAS? 👇 COMENTA
+      <div style={{display: 'inline-block', marginTop: 14, background: '#FFE600', color: '#000', fontSize: 78, whiteSpace: 'nowrap', padding: '14px 36px', borderRadius: 28, boxShadow: '0 10px 0 #000', transform: `scale(${sc2 * pulse})`}}>
+        LO MEJOR DE 3 FAMILIAS 📺
+      </div>
+      <div style={{marginTop: 22, color: '#fff', fontSize: 52, WebkitTextStroke: '7px #000', paintOrder: 'stroke fill', transform: `scale(${sc2})`}}>
+        EN NUESTRAS MARATONES DE FIN DE SEMANA
       </div>
     </div>
   );
@@ -75,7 +80,7 @@ const ShotView: React.FC<{shot: Shot}> = ({shot}) => {
   const f = useCurrentFrame();
   const n = Math.round(shot.dur * FPS);
   const flash = shot.flash ? interpolate(f, [0, 8], [0.9, 0], {extrapolateRight: 'clamp'}) : 0;
-  const ctaStart = n - 54;
+  const ctaStart = n - 90;
   return (
     <AbsoluteFill>
       {/* fondo desenfocado */}
@@ -133,7 +138,7 @@ export const Viral: React.FC = () => {
       {SHOTS.map((s, i) => (s.flash && i > 0) && (
         <Sequence key={`b${i}`} from={starts[i]}><Audio src={staticFile('audio/boom.wav')} volume={0.6} /></Sequence>
       ))}
-      <Sequence from={starts[SHOTS.length - 1] + Math.round(SHOTS[SHOTS.length - 1].dur * FPS) - 54}>
+      <Sequence from={starts[SHOTS.length - 1] + Math.round(SHOTS[SHOTS.length - 1].dur * FPS) - 90}>
         <Audio src={staticFile('audio/ding.wav')} volume={0.7} />
       </Sequence>
     </AbsoluteFill>
