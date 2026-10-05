@@ -35,8 +35,8 @@ export const AppointmentsTab = ({ patients }) => {
     catch (e) { toast.error(apiErr(e)); }
   };
   const whatsapp = (a) => {
-    const msg = `Cita — ${a.name}%0AFecha: ${prettyDate(a.date)} a las ${a.time}%0AServicio: ${a.service || "Consulta"}%0ATel: ${a.phone || "-"}%0AMotivo: ${a.reason || "-"}`;
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${msg}`, "_blank");
+    const msg = `Cita — ${a.name}\nFecha: ${prettyDate(a.date)} a las ${a.time}\nServicio: ${a.service || "Consulta"}\nTel: ${a.phone || "-"}\nMotivo: ${a.reason || "-"}`;
+    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank");
   };
 
   return (
