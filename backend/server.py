@@ -137,10 +137,35 @@ class PatientIn(BaseModel):
     insurance: Optional[str] = ""
     emergency_contact: Optional[str] = ""
     emergency_phone: Optional[str] = ""
+    # Ficha extendida
+    consulta_place: Optional[str] = ""
+    consulta_date: Optional[str] = ""
+    motivo_control: Optional[str] = ""
+    factores_riesgo: Optional[str] = ""
+    habitos: Optional[str] = ""
     allergies: Optional[str] = ""
-    history: Optional[str] = ""
+    app: Optional[str] = ""
+    apqx: Optional[str] = ""
     medications: Optional[str] = ""
+    actividad_fisica: Optional[str] = ""
+    vacuna_covid: Optional[str] = ""
+    # Examen físico y signos
+    cuadro_clinico: Optional[str] = ""
+    ex_respiratorio: Optional[str] = ""
+    ex_cardiovascular: Optional[str] = ""
+    igy: Optional[str] = ""
+    sv: Optional[str] = ""
+    imc: Optional[str] = ""
+    ecg_reposo: Optional[str] = ""
+    # Visor clínico
+    diagnostico: Optional[str] = ""
+    laboratorios: Optional[str] = ""
+    eco_desc: Optional[str] = ""
+    history: Optional[str] = ""
     notes: Optional[str] = ""
+
+class FollowUpIn(BaseModel):
+    text: str
 
 class CaseIn(BaseModel):
     patient_id: str
@@ -204,12 +229,20 @@ async def list_patients(user: dict = Depends(get_current_user)):
     docs = await db.patients.find({"owner_id": user["id"], "is_deleted": {"$ne": True}}, {"_id": 0}).sort("created_at", -1).to_list(1000)
     return docs
 
+@api_router.get("/patients/{pid}")
+async def get_patient(pid: str, user: dict = Depends(get_current_user)):
+    p = await db.patients.find_one({"id": pid, "owner_id": user["id"]}, {"_id": 0})
+    if not p:
+        raise HTTPException(status_code=404, detail="Paciente no encontrado")
+    return p
+
 @api_router.post("/patients")
 async def create_patient(body: PatientIn, user: dict = Depends(get_current_user)):
     ced = (body.cedula or "").strip()
     if ced and await db.patients.find_one({"owner_id": user["id"], "cedula": ced, "is_deleted": {"$ne": True}}):
         raise HTTPException(status_code=400, detail="Ya existe un paciente con esa cédula")
     doc = {"id": str(uuid.uuid4()), "owner_id": user["id"], **body.model_dump(),
+           "ekg_files": [], "eco_files": [], "lab_files": [], "followups": [],
            "is_deleted": False, "created_at": datetime.now(timezone.utc).isoformat()}
     await db.patients.insert_one(doc)
     doc.pop("_id", None)
@@ -230,6 +263,36 @@ async def update_patient(pid: str, body: PatientIn, user: dict = Depends(get_cur
 async def delete_patient(pid: str, user: dict = Depends(get_current_user)):
     await db.patients.update_one({"id": pid, "owner_id": user["id"]}, {"$set": {"is_deleted": True}})
     return {"status": "ok"}
+
+@api_router.post("/patients/{pid}/files")
+async def upload_patient_file(pid: str, field: str = Form(...), file: UploadFile = File(...),
+                              user: dict = Depends(get_current_user)):
+    if field not in ("ekg", "eco", "lab"):
+        raise HTTPException(status_code=400, detail="Campo inválido")
+    p = await db.patients.find_one({"id": pid, "owner_id": user["id"]})
+    if not p:
+        raise HTTPException(status_code=404, detail="Paciente no encontrado")
+    ref = await _store_file(file, user["id"])
+    await db.patients.update_one({"id": pid}, {"$push": {f"{field}_files": ref}})
+    return await db.patients.find_one({"id": pid}, {"_id": 0})
+
+@api_router.delete("/patients/{pid}/files/{file_id}")
+async def remove_patient_file(pid: str, file_id: str, field: str = Query(...),
+                              user: dict = Depends(get_current_user)):
+    if field not in ("ekg", "eco", "lab"):
+        raise HTTPException(status_code=400, detail="Campo inválido")
+    await db.patients.update_one({"id": pid, "owner_id": user["id"]},
+                                 {"$pull": {f"{field}_files": {"file_id": file_id}}})
+    return await db.patients.find_one({"id": pid}, {"_id": 0})
+
+@api_router.post("/patients/{pid}/followups")
+async def add_followup(pid: str, body: FollowUpIn, user: dict = Depends(get_current_user)):
+    p = await db.patients.find_one({"id": pid, "owner_id": user["id"]})
+    if not p:
+        raise HTTPException(status_code=404, detail="Paciente no encontrado")
+    fu = {"id": str(uuid.uuid4()), "text": body.text, "date": datetime.now(timezone.utc).isoformat()}
+    await db.patients.update_one({"id": pid}, {"$push": {"followups": fu}})
+    return await db.patients.find_one({"id": pid}, {"_id": 0})
 
 # ---------------- Cases ----------------
 def case_public(c: dict) -> dict:

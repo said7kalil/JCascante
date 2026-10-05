@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { LogOut, Globe } from "lucide-react";
+import { LogOut, Sun, Moon } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
 import { api, apiErr } from "@/lib/api";
 import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
@@ -19,47 +20,44 @@ const TABS = [
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
+  const { isDark, toggle } = useTheme();
   const nav = useNavigate();
   const [tab, setTab] = useState("casos");
   const [patients, setPatients] = useState([]);
   const [cases, setCases] = useState([]);
 
   const loadPatients = useCallback(async () => {
-    try { const { data } = await api.get("/patients"); setPatients(data); }
-    catch (e) { toast.error(apiErr(e)); }
+    try { const { data } = await api.get("/patients"); setPatients(data); } catch (e) { toast.error(apiErr(e)); }
   }, []);
   const loadCases = useCallback(async () => {
-    try { const { data } = await api.get("/cases"); setCases(data); }
-    catch (e) { toast.error(apiErr(e)); }
+    try { const { data } = await api.get("/cases"); setCases(data); } catch (e) { toast.error(apiErr(e)); }
   }, []);
-
   useEffect(() => { loadPatients(); loadCases(); }, [loadPatients, loadCases]);
 
   const doLogout = () => { logout(); nav("/"); };
 
   return (
-    <div className="min-h-screen bg-navy-950">
-      {/* Top white bar */}
-      <div className="bg-white px-6 lg:px-10 h-[76px] flex items-center justify-between">
-        <Logo />
-        <Globe className="text-navy-900/70" size={22} />
+    <div className="min-h-screen ui-page">
+      <div className="ui-card border-b ui-line px-6 lg:px-10 h-[76px] flex items-center justify-between">
+        <Logo invert={isDark} />
+        <button onClick={toggle} data-testid="theme-toggle" className="ui-sub hover:text-cyan transition-colors" title="Cambiar tema">
+          {isDark ? <Sun size={20} /> : <Moon size={20} />}
+        </button>
       </div>
 
       <div className="max-w-[1360px] mx-auto px-5 lg:px-8 py-8">
-        {/* Dashboard header */}
         <div className="flex items-center justify-between mb-6">
-          <h1 className="font-display font-bold text-2xl text-white">Dashboard</h1>
+          <h1 className="font-display font-bold text-2xl ui-ink">Dashboard</h1>
           <div className="flex items-center gap-3 text-gold">
             <span className="font-semibold" data-testid="dash-username">{user?.name}</span>
-            <button onClick={doLogout} data-testid="logout-btn" className="hover:text-white transition-colors" aria-label="Salir"><LogOut size={20} /></button>
+            <button onClick={doLogout} data-testid="logout-btn" className="hover:text-pulse transition-colors" aria-label="Salir"><LogOut size={20} /></button>
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-8 border-b border-white/10 mb-8">
+        <div className="flex gap-6 sm:gap-8 border-b ui-line mb-8 overflow-x-auto">
           {TABS.map((t) => (
             <button key={t.id} onClick={() => setTab(t.id)} data-testid={`tab-${t.id}`}
-                    className={`relative pb-3 font-display font-semibold text-lg transition-colors ${tab === t.id ? "text-gold" : "text-white/55 hover:text-white"}`}>
+                    className={`relative pb-3 font-display font-semibold text-base sm:text-lg whitespace-nowrap transition-colors ${tab === t.id ? "text-gold" : "ui-sub hover:text-pulse"}`}>
               {t.label}
               {tab === t.id && <span className="absolute bottom-0 inset-x-0 h-0.5 bg-gold rounded-full" />}
             </button>
