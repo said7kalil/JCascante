@@ -159,6 +159,21 @@ class ContactIn(BaseModel):
     service: Optional[str] = ""
     message: str
 
+class AppointmentIn(BaseModel):
+    patient_id: Optional[str] = ""
+    name: str
+    phone: Optional[str] = ""
+    email: Optional[str] = ""
+    cedula: Optional[str] = ""
+    service: Optional[str] = ""
+    date: str
+    time: str
+    reason: Optional[str] = ""
+    status: Optional[str] = "pendiente"
+
+class StatusIn(BaseModel):
+    status: str
+
 # ---------------- Auth routes ----------------
 @api_router.post("/auth/register")
 async def register(body: RegisterIn):
@@ -328,6 +343,81 @@ async def create_presentation(title: str = Form(...), file: UploadFile = File(..
 @api_router.delete("/presentations/{pid}")
 async def delete_presentation(pid: str, user: dict = Depends(get_current_user)):
     await db.presentations.update_one({"id": pid, "owner_id": user["id"]}, {"$set": {"is_deleted": True}})
+    return {"status": "ok"}
+
+# ---------------- Appointments (Citas) ----------------
+VALID_STATUS = {"pendiente", "confirmada", "cancelada"}
+
+async def _send_appt_email(appt: dict):
+    html = f"""<div style="font-family:Arial;background:#0A1330;color:#fff;padding:28px;border-radius:14px;max-width:560px">
+    <h2 style="color:#38BDF8;margin:0 0 4px;font-size:13px;letter-spacing:2px;text-transform:uppercase">Nueva cita agendada</h2>
+    <h1 style="margin:0 0 18px;font-size:24px;color:#fff">{appt['name']}</h1>
+    <table style="font-size:15px;color:#fff;width:100%">
+      <tr><td style="color:#9fb0d0;padding:5px 0;width:130px">Fecha</td><td><b>{appt['date']}</b></td></tr>
+      <tr><td style="color:#9fb0d0;padding:5px 0">Hora</td><td><b>{appt['time']}</b></td></tr>
+      <tr><td style="color:#9fb0d0;padding:5px 0">Servicio</td><td>{appt.get('service') or '-'}</td></tr>
+      <tr><td style="color:#9fb0d0;padding:5px 0">Teléfono</td><td>{appt.get('phone') or '-'}</td></tr>
+      <tr><td style="color:#9fb0d0;padding:5px 0">Correo</td><td>{appt.get('email') or '-'}</td></tr>
+      <tr><td style="color:#9fb0d0;padding:5px 0">Cédula</td><td>{appt.get('cedula') or '-'}</td></tr>
+    </table>
+    <div style="margin-top:16px;padding:16px;background:#162447;border-radius:10px">
+      <p style="margin:0;color:#9fb0d0;font-size:12px;text-transform:uppercase">Motivo</p>
+      <p style="margin:4px 0 0">{appt.get('reason') or '-'}</p>
+    </div></div>"""
+    try:
+        async with httpx.AsyncClient(timeout=30) as hc:
+            r = await hc.post(f"{EMAIL_BASE_URL}/api/v1/email/send",
+                              headers={"X-Email-Key": EMAIL_KEY},
+                              json={"to": [CONTACT_RECIPIENT_EMAIL],
+                                    "subject": f"Nueva cita: {appt['name']} · {appt['date']} {appt['time']}",
+                                    "html": html, "from_name": EMAIL_FROM_NAME,
+                                    "contact_email": appt.get("email") or CONTACT_RECIPIENT_EMAIL})
+        r.raise_for_status()
+        return True
+    except Exception as e:
+        logger.error(f"Appointment email failed: {e}")
+        return False
+
+@api_router.get("/appointments")
+async def list_appointments(user: dict = Depends(get_current_user)):
+    docs = await db.appointments.find({"owner_id": user["id"], "is_deleted": {"$ne": True}}, {"_id": 0}).to_list(2000)
+    docs.sort(key=lambda a: (a.get("date", ""), a.get("time", "")))
+    return docs
+
+@api_router.post("/appointments")
+async def create_appointment(body: AppointmentIn, user: dict = Depends(get_current_user)):
+    status = body.status if body.status in VALID_STATUS else "pendiente"
+    doc = {"id": str(uuid.uuid4()), "owner_id": user["id"], **body.model_dump(),
+           "status": status, "email_sent": False, "is_deleted": False,
+           "created_at": datetime.now(timezone.utc).isoformat()}
+    doc["email_sent"] = await _send_appt_email(doc)
+    await db.appointments.insert_one(dict(doc))
+    doc.pop("_id", None)
+    return doc
+
+@api_router.put("/appointments/{aid}")
+async def update_appointment(aid: str, body: AppointmentIn, user: dict = Depends(get_current_user)):
+    status = body.status if body.status in VALID_STATUS else "pendiente"
+    upd = {**body.model_dump(), "status": status}
+    res = await db.appointments.update_one({"id": aid, "owner_id": user["id"]}, {"$set": upd})
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Cita no encontrada")
+    doc = await db.appointments.find_one({"id": aid}, {"_id": 0})
+    return doc
+
+@api_router.put("/appointments/{aid}/status")
+async def set_appointment_status(aid: str, body: StatusIn, user: dict = Depends(get_current_user)):
+    if body.status not in VALID_STATUS:
+        raise HTTPException(status_code=400, detail="Estado inválido")
+    res = await db.appointments.update_one({"id": aid, "owner_id": user["id"]}, {"$set": {"status": body.status}})
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Cita no encontrada")
+    doc = await db.appointments.find_one({"id": aid}, {"_id": 0})
+    return doc
+
+@api_router.delete("/appointments/{aid}")
+async def delete_appointment(aid: str, user: dict = Depends(get_current_user)):
+    await db.appointments.update_one({"id": aid, "owner_id": user["id"]}, {"$set": {"is_deleted": True}})
     return {"status": "ok"}
 
 # ---------------- File serving (supports ?auth= for img/video/pdf tags) ----------------

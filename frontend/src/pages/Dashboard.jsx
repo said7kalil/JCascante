@@ -7,11 +7,13 @@ import { toast } from "sonner";
 import { Logo } from "@/components/Logo";
 import { CasesTab } from "@/components/dashboard/CasesTab";
 import { PatientsTab } from "@/components/dashboard/PatientsTab";
+import { AppointmentsTab } from "@/components/dashboard/AppointmentsTab";
 import { SlidesTab } from "@/components/dashboard/SlidesTab";
 
 const TABS = [
   { id: "casos", label: "Gestionar Casos" },
   { id: "pacientes", label: "Pacientes" },
+  { id: "citas", label: "Citas" },
   { id: "diapositivas", label: "Diapositivas" },
 ];
 
@@ -66,6 +68,7 @@ export default function Dashboard() {
 
         {tab === "casos" && <CasesTab patients={patients} cases={cases} reloadCases={loadCases} />}
         {tab === "pacientes" && <PatientsTab patients={patients} reload={loadPatients} />}
+        {tab === "citas" && <AppointmentsTab patients={patients} />}
         {tab === "diapositivas" && <SlidesTab />}
       </div>
     </div>
