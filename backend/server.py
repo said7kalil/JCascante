@@ -123,9 +123,23 @@ class RegisterIn(BaseModel):
 
 class PatientIn(BaseModel):
     name: str
+    cedula: Optional[str] = ""
+    birthdate: Optional[str] = ""
     age: Optional[str] = ""
     sex: Optional[str] = ""
+    blood_type: Optional[str] = ""
     phone: Optional[str] = ""
+    email: Optional[str] = ""
+    city: Optional[str] = ""
+    address: Optional[str] = ""
+    marital_status: Optional[str] = ""
+    occupation: Optional[str] = ""
+    insurance: Optional[str] = ""
+    emergency_contact: Optional[str] = ""
+    emergency_phone: Optional[str] = ""
+    allergies: Optional[str] = ""
+    history: Optional[str] = ""
+    medications: Optional[str] = ""
     notes: Optional[str] = ""
 
 class CaseIn(BaseModel):
@@ -177,10 +191,24 @@ async def list_patients(user: dict = Depends(get_current_user)):
 
 @api_router.post("/patients")
 async def create_patient(body: PatientIn, user: dict = Depends(get_current_user)):
+    ced = (body.cedula or "").strip()
+    if ced and await db.patients.find_one({"owner_id": user["id"], "cedula": ced, "is_deleted": {"$ne": True}}):
+        raise HTTPException(status_code=400, detail="Ya existe un paciente con esa cédula")
     doc = {"id": str(uuid.uuid4()), "owner_id": user["id"], **body.model_dump(),
            "is_deleted": False, "created_at": datetime.now(timezone.utc).isoformat()}
     await db.patients.insert_one(doc)
     doc.pop("_id", None)
+    return doc
+
+@api_router.put("/patients/{pid}")
+async def update_patient(pid: str, body: PatientIn, user: dict = Depends(get_current_user)):
+    ced = (body.cedula or "").strip()
+    if ced and await db.patients.find_one({"owner_id": user["id"], "cedula": ced, "id": {"$ne": pid}, "is_deleted": {"$ne": True}}):
+        raise HTTPException(status_code=400, detail="Ya existe un paciente con esa cédula")
+    res = await db.patients.update_one({"id": pid, "owner_id": user["id"]}, {"$set": body.model_dump()})
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Paciente no encontrado")
+    doc = await db.patients.find_one({"id": pid}, {"_id": 0})
     return doc
 
 @api_router.delete("/patients/{pid}")
