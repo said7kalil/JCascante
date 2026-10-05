@@ -20,8 +20,13 @@ Rebuild: animated Spanish landing (fireguard.org style) + LOGIN button opening a
 - Case presentation dark card (Cuadro clínico, EKG gallery, Laboratorios, Ecocardiograma video, Diagnóstico).
 - Tested: backend 20/20, frontend 100% of flows. Escape closes modals.
 
+## Implemented (2026-10-05)
+- Ficha del paciente: agregado botón de subida "Laboratorios — PDF" (solo PDF) junto a EKG y Ecocardiograma; los archivos se muestran con ícono de documento, se abren al hacer clic y se pueden eliminar. El Visor clínico (modal) ahora lista los PDF de laboratorios con enlace para abrirlos. Verificado en tema claro y oscuro, y con subida/descarga real vía API.
+
 ## Backlog
 - P1: Real clinic contact info + recipient email (placeholders in data/site.js & backend .env).
+- P1: Recordatorios automáticos de citas por WhatsApp (mencionado por el usuario; hoy el recordatorio abre el chat manualmente).
 - P2: Case presentation Fullscreen/Descargar (print) actions; PPTX→image auto-conversion for in-viewer preview.
 - P2: Password reset / self-registration UI; per-doctor profile slide (credentials, flags) as in mockup 07.
 - P2: Favicon/OG image, brand logo asset.
+- P2: Refactor de tokens de tema (los scripts _theme_swap/_color_fix dejaron clases hardcodeadas; migrar a variables CSS).

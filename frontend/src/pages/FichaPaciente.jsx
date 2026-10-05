@@ -163,7 +163,9 @@ export default function FichaPaciente() {
               <Txt label="Título / Diagnóstico (visor)" k="diagnostico" value={form.diagnostico} onChange={up("diagnostico")} />
               <Area label="Laboratorios" k="laboratorios" value={form.laboratorios} onChange={up("laboratorios")} rows={3} />
               <Area label="Ecocardiograma — descripción" k="eco_desc" value={form.eco_desc} onChange={up("eco_desc")} rows={3} />
-              <div className="grid sm:grid-cols-2 gap-6 pt-2">
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-2">
+                <UploadRow label="Laboratorios — PDF" icon={FileText} accept="application/pdf" files={p?.lab_files || []}
+                           onUpload={(f) => doUpload("lab", f)} onRemove={(fid) => removeFile("lab", fid)} testid="up-lab" />
                 <UploadRow label="EKG — imágenes" icon={ImageIcon} accept="image/*" files={p?.ekg_files || []}
                            onUpload={(f) => doUpload("ekg", f)} onRemove={(fid) => removeFile("ekg", fid)} testid="up-ekg" />
                 <UploadRow label="Ecocardiograma — imágenes / video" icon={Video} accept="image/*,video/*" files={p?.eco_files || []}
@@ -212,9 +214,14 @@ const UploadRow = ({ label, icon: Icon, accept, files, onUpload, onRemove, testi
       </label>
       {files.map((f) => (
         <div key={f.file_id} className="relative group w-20 h-20 rounded-xl overflow-hidden ui-field border flex items-center justify-center">
-          {f.content_type?.startsWith("image/")
-            ? <img src={fileUrl(f.url)} alt="" className="w-full h-full object-cover" />
-            : <Video size={22} className="ui-muted" />}
+          <a href={fileUrl(f.url)} target="_blank" rel="noreferrer" title={f.original_filename}
+             className="w-full h-full flex items-center justify-center">
+            {f.content_type?.startsWith("image/")
+              ? <img src={fileUrl(f.url)} alt="" className="w-full h-full object-cover" />
+              : f.content_type === "application/pdf"
+                ? <FileText size={22} className="ui-muted" />
+                : <Video size={22} className="ui-muted" />}
+          </a>
           <button onClick={() => onRemove(f.file_id)} className="absolute top-1 right-1 bg-pulse text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition"><X size={12} /></button>
         </div>
       ))}
@@ -353,7 +360,19 @@ const VisorModal = ({ p, onClose }) => {
                 </div>
               ) : <p className="text-white/35 text-sm">Sin EKG.</p>}
             </Panel>
-            <Panel title="Laboratorios" color="magenta"><p className="text-white/85 whitespace-pre-line">{p.laboratorios || "—"}</p></Panel>
+            <Panel title="Laboratorios" color="magenta">
+              <p className="text-white/85 whitespace-pre-line">{p.laboratorios || "—"}</p>
+              {(p.lab_files || []).length > 0 && (
+                <div className="mt-3 space-y-2" data-testid="visor-lab-files">
+                  {p.lab_files.map((f) => (
+                    <a key={f.file_id} href={fileUrl(f.url)} target="_blank" rel="noreferrer"
+                       className="flex items-center gap-2 rounded-lg bg-white/5 border border-white/10 px-3 py-2 text-sm text-cyan hover:bg-white/10 transition">
+                      <FileText size={16} className="shrink-0" /> <span className="truncate">{f.original_filename}</span>
+                    </a>
+                  ))}
+                </div>
+              )}
+            </Panel>
             <Panel title="Ecocardiograma" color="magenta">
               {eco.length ? <video src={fileUrl(eco[0].url)} controls className="w-full h-52 rounded-lg bg-black mb-3" />
                 : <div className="flex items-center justify-center h-40 rounded-lg bg-navy-800 mb-3 text-white/30"><Play size={38} /></div>}
