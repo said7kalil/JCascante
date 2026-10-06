@@ -111,10 +111,49 @@ class RegisterIn(BaseModel):
 
 class PatientIn(BaseModel):
     name: str
+    cedula: Optional[str] = ""
+    birthdate: Optional[str] = ""
     age: Optional[str] = ""
     sex: Optional[str] = ""
+    blood_type: Optional[str] = ""
     phone: Optional[str] = ""
+    email: Optional[str] = ""
+    city: Optional[str] = ""
+    address: Optional[str] = ""
+    marital_status: Optional[str] = ""
+    occupation: Optional[str] = ""
+    insurance: Optional[str] = ""
+    emergency_contact: Optional[str] = ""
+    emergency_phone: Optional[str] = ""
+    # Ficha extendida
+    consulta_place: Optional[str] = ""
+    consulta_date: Optional[str] = ""
+    motivo_control: Optional[str] = ""
+    factores_riesgo: Optional[str] = ""
+    habitos: Optional[str] = ""
+    allergies: Optional[str] = ""
+    app: Optional[str] = ""
+    apqx: Optional[str] = ""
+    medications: Optional[str] = ""
+    actividad_fisica: Optional[str] = ""
+    vacuna_covid: Optional[str] = ""
+    # Examen físico y signos
+    cuadro_clinico: Optional[str] = ""
+    ex_respiratorio: Optional[str] = ""
+    ex_cardiovascular: Optional[str] = ""
+    igy: Optional[str] = ""
+    sv: Optional[str] = ""
+    imc: Optional[str] = ""
+    ecg_reposo: Optional[str] = ""
+    # Visor clínico
+    diagnostico: Optional[str] = ""
+    laboratorios: Optional[str] = ""
+    eco_desc: Optional[str] = ""
+    history: Optional[str] = ""
     notes: Optional[str] = ""
+
+class FollowUpIn(BaseModel):
+    text: str
 
 class CaseIn(BaseModel):
     patient_id: str
@@ -132,6 +171,21 @@ class ContactIn(BaseModel):
     phone: Optional[str] = ""
     service: Optional[str] = ""
     message: str
+
+class AppointmentIn(BaseModel):
+    patient_id: Optional[str] = ""
+    name: str
+    phone: Optional[str] = ""
+    email: Optional[str] = ""
+    cedula: Optional[str] = ""
+    service: Optional[str] = ""
+    date: str
+    time: str
+    reason: Optional[str] = ""
+    status: Optional[str] = "pendiente"
+
+class StatusIn(BaseModel):
+    status: str
 
 # ---------------- Auth routes ----------------
 @api_router.post("/auth/register")
@@ -165,18 +219,70 @@ async def list_patients(user: dict = Depends(get_current_user)):
     docs = await db.patients.find({"owner_id": user["id"], "is_deleted": {"$ne": True}}, {"_id": 0}).sort("created_at", -1).to_list(1000)
     return docs
 
+@api_router.get("/patients/{pid}")
+async def get_patient(pid: str, user: dict = Depends(get_current_user)):
+    p = await db.patients.find_one({"id": pid, "owner_id": user["id"]}, {"_id": 0})
+    if not p:
+        raise HTTPException(status_code=404, detail="Paciente no encontrado")
+    return p
+
 @api_router.post("/patients")
 async def create_patient(body: PatientIn, user: dict = Depends(get_current_user)):
+    ced = (body.cedula or "").strip()
+    if ced and await db.patients.find_one({"owner_id": user["id"], "cedula": ced, "is_deleted": {"$ne": True}}):
+        raise HTTPException(status_code=400, detail="Ya existe un paciente con esa cédula")
     doc = {"id": str(uuid.uuid4()), "owner_id": user["id"], **body.model_dump(),
+           "ekg_files": [], "eco_files": [], "lab_files": [], "followups": [],
            "is_deleted": False, "created_at": datetime.now(timezone.utc).isoformat()}
     await db.patients.insert_one(doc)
     doc.pop("_id", None)
+    return doc
+
+@api_router.put("/patients/{pid}")
+async def update_patient(pid: str, body: PatientIn, user: dict = Depends(get_current_user)):
+    ced = (body.cedula or "").strip()
+    if ced and await db.patients.find_one({"owner_id": user["id"], "cedula": ced, "id": {"$ne": pid}, "is_deleted": {"$ne": True}}):
+        raise HTTPException(status_code=400, detail="Ya existe un paciente con esa cédula")
+    res = await db.patients.update_one({"id": pid, "owner_id": user["id"]}, {"$set": body.model_dump()})
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Paciente no encontrado")
+    doc = await db.patients.find_one({"id": pid}, {"_id": 0})
     return doc
 
 @api_router.delete("/patients/{pid}")
 async def delete_patient(pid: str, user: dict = Depends(get_current_user)):
     await db.patients.update_one({"id": pid, "owner_id": user["id"]}, {"$set": {"is_deleted": True}})
     return {"status": "ok"}
+
+@api_router.post("/patients/{pid}/files")
+async def upload_patient_file(pid: str, field: str = Form(...), file: UploadFile = File(...),
+                              user: dict = Depends(get_current_user)):
+    if field not in ("ekg", "eco", "lab"):
+        raise HTTPException(status_code=400, detail="Campo inválido")
+    p = await db.patients.find_one({"id": pid, "owner_id": user["id"]})
+    if not p:
+        raise HTTPException(status_code=404, detail="Paciente no encontrado")
+    ref = await _store_file(file, user["id"])
+    await db.patients.update_one({"id": pid}, {"$push": {f"{field}_files": ref}})
+    return await db.patients.find_one({"id": pid}, {"_id": 0})
+
+@api_router.delete("/patients/{pid}/files/{file_id}")
+async def remove_patient_file(pid: str, file_id: str, field: str = Query(...),
+                              user: dict = Depends(get_current_user)):
+    if field not in ("ekg", "eco", "lab"):
+        raise HTTPException(status_code=400, detail="Campo inválido")
+    await db.patients.update_one({"id": pid, "owner_id": user["id"]},
+                                 {"$pull": {f"{field}_files": {"file_id": file_id}}})
+    return await db.patients.find_one({"id": pid}, {"_id": 0})
+
+@api_router.post("/patients/{pid}/followups")
+async def add_followup(pid: str, body: FollowUpIn, user: dict = Depends(get_current_user)):
+    p = await db.patients.find_one({"id": pid, "owner_id": user["id"]})
+    if not p:
+        raise HTTPException(status_code=404, detail="Paciente no encontrado")
+    fu = {"id": str(uuid.uuid4()), "text": body.text, "date": datetime.now(timezone.utc).isoformat()}
+    await db.patients.update_one({"id": pid}, {"$push": {"followups": fu}})
+    return await db.patients.find_one({"id": pid}, {"_id": 0})
 
 # ---------------- Cases ----------------
 def case_public(c: dict) -> dict:
@@ -292,6 +398,78 @@ async def create_presentation(title: str = Form(...), file: UploadFile = File(..
 @api_router.delete("/presentations/{pid}")
 async def delete_presentation(pid: str, user: dict = Depends(get_current_user)):
     await db.presentations.update_one({"id": pid, "owner_id": user["id"]}, {"$set": {"is_deleted": True}})
+    return {"status": "ok"}
+
+# ---------------- Appointments (Citas) ----------------
+VALID_STATUS = {"pendiente", "confirmada", "cancelada"}
+
+async def _send_appt_email(appt: dict):
+    e = {k: html_lib.escape(str(appt.get(k) or "-")) for k in
+         ("name", "date", "time", "service", "phone", "email", "cedula", "reason")}
+    html = f"""<div style="font-family:Arial;background:#0A1330;color:#fff;padding:28px;border-radius:14px;max-width:560px">
+    <h2 style="color:#38BDF8;margin:0 0 4px;font-size:13px;letter-spacing:2px;text-transform:uppercase">Nueva cita agendada</h2>
+    <h1 style="margin:0 0 18px;font-size:24px;color:#fff">{e['name']}</h1>
+    <table style="font-size:15px;color:#fff;width:100%">
+      <tr><td style="color:#9fb0d0;padding:5px 0;width:130px">Fecha</td><td><b>{e['date']}</b></td></tr>
+      <tr><td style="color:#9fb0d0;padding:5px 0">Hora</td><td><b>{e['time']}</b></td></tr>
+      <tr><td style="color:#9fb0d0;padding:5px 0">Servicio</td><td>{e['service']}</td></tr>
+      <tr><td style="color:#9fb0d0;padding:5px 0">Teléfono</td><td>{e['phone']}</td></tr>
+      <tr><td style="color:#9fb0d0;padding:5px 0">Correo</td><td>{e['email']}</td></tr>
+      <tr><td style="color:#9fb0d0;padding:5px 0">Cédula</td><td>{e['cedula']}</td></tr>
+    </table>
+    <div style="margin-top:16px;padding:16px;background:#162447;border-radius:10px">
+      <p style="margin:0;color:#9fb0d0;font-size:12px;text-transform:uppercase">Motivo</p>
+      <p style="margin:4px 0 0">{e['reason']}</p>
+    </div></div>"""
+    reply_to = appt.get("email") or CONTACT_RECIPIENT_EMAIL
+    try:
+        await asyncio.to_thread(send_email, f"Nueva cita: {appt['name']} · {appt['date']} {appt['time']}",
+                                html, reply_to)
+        return True
+    except Exception as ex:
+        logger.error(f"Appointment email failed: {ex}")
+        return False
+
+@api_router.get("/appointments")
+async def list_appointments(user: dict = Depends(get_current_user)):
+    docs = await db.appointments.find({"owner_id": user["id"], "is_deleted": {"$ne": True}}, {"_id": 0}).to_list(2000)
+    docs.sort(key=lambda a: (a.get("date", ""), a.get("time", "")))
+    return docs
+
+@api_router.post("/appointments")
+async def create_appointment(body: AppointmentIn, user: dict = Depends(get_current_user)):
+    status = body.status if body.status in VALID_STATUS else "pendiente"
+    doc = {"id": str(uuid.uuid4()), "owner_id": user["id"], **body.model_dump(),
+           "status": status, "email_sent": False, "is_deleted": False,
+           "created_at": datetime.now(timezone.utc).isoformat()}
+    doc["email_sent"] = await _send_appt_email(doc)
+    await db.appointments.insert_one(dict(doc))
+    doc.pop("_id", None)
+    return doc
+
+@api_router.put("/appointments/{aid}")
+async def update_appointment(aid: str, body: AppointmentIn, user: dict = Depends(get_current_user)):
+    status = body.status if body.status in VALID_STATUS else "pendiente"
+    upd = {**body.model_dump(), "status": status}
+    res = await db.appointments.update_one({"id": aid, "owner_id": user["id"]}, {"$set": upd})
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Cita no encontrada")
+    doc = await db.appointments.find_one({"id": aid}, {"_id": 0})
+    return doc
+
+@api_router.put("/appointments/{aid}/status")
+async def set_appointment_status(aid: str, body: StatusIn, user: dict = Depends(get_current_user)):
+    if body.status not in VALID_STATUS:
+        raise HTTPException(status_code=400, detail="Estado inválido")
+    res = await db.appointments.update_one({"id": aid, "owner_id": user["id"]}, {"$set": {"status": body.status}})
+    if res.matched_count == 0:
+        raise HTTPException(status_code=404, detail="Cita no encontrada")
+    doc = await db.appointments.find_one({"id": aid}, {"_id": 0})
+    return doc
+
+@api_router.delete("/appointments/{aid}")
+async def delete_appointment(aid: str, user: dict = Depends(get_current_user)):
+    await db.appointments.update_one({"id": aid, "owner_id": user["id"]}, {"$set": {"is_deleted": True}})
     return {"status": "ok"}
 
 # ---------------- File serving (supports ?auth= for img/video/pdf tags) ----------------
